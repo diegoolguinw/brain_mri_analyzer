@@ -15,7 +15,7 @@ from reportlab.platypus import (
     HRFlowable, PageBreak,
 )
 
-from .inference import AnalysisResult
+from .inference_onnx import AnalysisResult
 
 
 # ---------------------------------------------------------------------------

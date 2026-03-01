@@ -1,5 +1,5 @@
 django>=4.2,<5.0
-torch>=2.0
+onnxruntime>=1.17
 numpy
 Pillow
 matplotlib

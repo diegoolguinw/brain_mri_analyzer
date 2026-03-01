@@ -9,8 +9,8 @@ services:
         generateValue: true
       - key: DJANGO_DEBUG
         value: "0"
-      - key: CHECKPOINT_PATH
-        value: /app/checkpoints/unet_resse_best.pt
+      - key: ONNX_MODEL_PATH
+        value: /app/checkpoints/model.onnx
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://brain-mri-analyzer.onrender.com"
       - key: PYTHON_VERSION

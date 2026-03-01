@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
 from .forms import MRIUploadForm
-from .inference import analyze_image
+from .inference_onnx import analyze_image
 from .report import generate_pdf_report
 
 
