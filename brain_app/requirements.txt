@@ -1,0 +1,9 @@
+django>=4.2,<5.0
+torch>=2.0
+numpy
+Pillow
+matplotlib
+reportlab
+scipy
+gunicorn>=21.2
+whitenoise>=6.5

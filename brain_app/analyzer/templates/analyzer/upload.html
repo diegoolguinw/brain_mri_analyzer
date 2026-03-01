@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brain MRI Analyzer</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'analyzer/style.css' %}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🧠 Brain MRI Tumor Analyzer</h1>
+      <p class="subtitle">Upload a brain MRI slice for automated tumor segmentation and report generation.</p>
+    </header>
+
+    <main class="upload-card">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="id_image">{{ form.image.label }}</label>
+          {{ form.image }}
+          {% if form.image.help_text %}
+            <small class="help-text">{{ form.image.help_text }}</small>
+          {% endif %}
+          {% for error in form.image.errors %}
+            <p class="error">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn">Analyze Image</button>
+      </form>
+
+      <div class="info-box">
+        <h3>How it works</h3>
+        <ol>
+          <li>Upload a grayscale brain MRI image (axial slice).</li>
+          <li>The deep-learning model segments potential tumor regions.</li>
+          <li>A structured report with findings is generated as a downloadable PDF.</li>
+        </ol>
+        <p class="disclaimer">
+          <strong>Disclaimer:</strong> This tool is for research and educational purposes only.
+          It is not a medical device and must not be used for clinical decisions.
+        </p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

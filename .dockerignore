@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+.git
+.gitignore
+*.ipynb
+*.ipynb_checkpoints
+brain_app/db.sqlite3
+brain_app/media/uploads/*
+brain_app/media/results/*
+brain_app/staticfiles/
+.env
+*.egg-info
+dist/
+build/

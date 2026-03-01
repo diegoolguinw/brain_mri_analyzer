@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: brain-mri-analyzer
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: CHECKPOINT_PATH
+        value: /app/checkpoints/unet_resse_best.pt
+      - key: PYTHON_VERSION
+        value: "3.11"
