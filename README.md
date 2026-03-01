@@ -340,5 +340,5 @@ This project is intended for educational and research purposes.
 ---
 
 <p align="center">
-  Made with ❤️ for learning deep learning, web development, and deployment.
+  Made with ❤️ for learning deep learning applied to healthcare, web development, and deployment.
 </p>
