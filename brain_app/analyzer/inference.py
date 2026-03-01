@@ -37,10 +37,13 @@ def load_model(checkpoint_path: Optional[str] = None):
     global _MODEL, _DEVICE, _THRESHOLD, _IMG_SIZE, _MODEL_NAME
 
     if checkpoint_path is None:
-        # Default: look for baseline checkpoint next to project
-        checkpoint_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "checkpoints", "unet_resse_best.pt",
+        # Use Django setting (honours CHECKPOINT_PATH env var), fall back to relative path
+        checkpoint_path = os.environ.get(
+            "CHECKPOINT_PATH",
+            os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                "checkpoints", "unet_resse_best.pt",
+            ),
         )
 
     _DEVICE = _get_device()
