@@ -37,14 +37,22 @@ def load_model(checkpoint_path: Optional[str] = None):
     global _MODEL, _DEVICE, _THRESHOLD, _IMG_SIZE, _MODEL_NAME
 
     if checkpoint_path is None:
-        # Use Django setting (honours CHECKPOINT_PATH env var), fall back to relative path
-        checkpoint_path = os.environ.get(
-            "CHECKPOINT_PATH",
-            os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                "checkpoints", "unet_resse_best.pt",
-            ),
-        )
+        # Use CHECKPOINT_PATH env var, or Django setting, or find relative to this file
+        checkpoint_path = os.environ.get("CHECKPOINT_PATH")
+        if checkpoint_path is None:
+            try:
+                from django.conf import settings as django_settings
+                checkpoint_path = getattr(django_settings, "CHECKPOINT_PATH", None)
+            except Exception:
+                pass
+        if checkpoint_path is None:
+            # Fallback: walk up from this file to find checkpoints/
+            base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            candidate = os.path.join(base, "checkpoints", "unet_resse_best.pt")
+            if not os.path.exists(candidate):
+                # Docker layout: checkpoints/ is a sibling of the app code
+                candidate = os.path.join(base, "..", "checkpoints", "unet_resse_best.pt")
+            checkpoint_path = os.path.abspath(candidate)
 
     _DEVICE = _get_device()
     ckpt = torch.load(checkpoint_path, map_location=_DEVICE, weights_only=False)
