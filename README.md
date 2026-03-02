@@ -19,6 +19,7 @@ Built for **educational purposes** — the full pipeline is covered: data explor
 - [Project Overview](#-project-overview)
 - [Repository Structure](#-repository-structure)
 - [The Notebook — Training Pipeline](#-the-notebook--training-pipeline)
+- [Lecture Slides](#-lecture-slides)
 - [The Web App — Django + ONNX Runtime](#-the-web-app--django--onnx-runtime)
 - [Getting Started](#-getting-started)
   - [1. Training (Notebook)](#1-training-notebook)
@@ -61,6 +62,7 @@ This project walks through the **complete lifecycle** of a medical image segment
 ```
 brain/
 ├── segmentation.ipynb          # 📓 Full training notebook (data → model → evaluation)
+├── slides.html                 # 🎓 Reveal.js lecture slides (open in browser)
 ├── export_onnx.py              # 🔄 PyTorch → ONNX conversion script
 ├── Dockerfile                  # 🐳 Production container (ONNX Runtime, no PyTorch)
 ├── render.yaml                 # ☁️  Render.com deployment config
@@ -115,7 +117,34 @@ Attention U-Net v2:    1 → 64 → 128 → 256 → 512 → 1024 (bottleneck) �
 
 ---
 
-## 🌐 The Web App — Django + ONNX Runtime
+## � Lecture Slides
+
+The [`slides.html`](slides.html) file is a self-contained **Reveal.js** presentation designed for university-level introductory courses. Open it in any browser — no server or build step required.
+
+### What's Inside
+
+| Section | Topics Covered |
+|---|---|
+| **00 — Quick Primer** | What is MRI, what is a glioma, computer-vision tasks, neural networks, convolutions, supervised learning, DL glossary |
+| **01 — Data & Clinical Context** | LGG dataset overview, FLAIR modality, image-mask pairing, class imbalance and 3-level defense |
+| **02 — Classical Baseline** | Why start with a baseline, Otsu's method (full formulation), why it fails on brain MRI |
+| **03 — U-Net Architecture** | Encoder-decoder design, skip connections, Residual SE blocks, SE attention explained, channel flow through the network |
+| **04 — Training Strategy** | BCE + Focal-Tversky loss, EMA, TTA, data pipeline, code walkthrough |
+| **05 — Evaluation Metrics** | Confusion matrix, precision & recall, F1 / Dice equivalence, IoU, threshold optimization |
+| **06 — Multi-Level Evaluation** | Slice-level vs. patient-level metrics, failure analysis methodology |
+| **07 — Responsible AI** | Known limitations, deployment checklist, model card |
+| **Bonus — Deployment** | ONNX export, Django + ONNX Runtime web-app architecture |
+
+### Features
+
+- **Beginner-friendly** — Section 00 introduces MRI, neural networks, and convolutions from scratch
+- **Reveal.js 5.1** with MathJax 3 for LaTeX equations and Monokai syntax highlighting
+- **~50 slides** with ASCII diagrams, comparison tables, formula boxes, and animated fragments
+- **No dependencies** — CDN-loaded; just open `slides.html` in a browser
+
+---
+
+## �🌐 The Web App — Django + ONNX Runtime
 
 A clean, responsive web interface where users can:
 
