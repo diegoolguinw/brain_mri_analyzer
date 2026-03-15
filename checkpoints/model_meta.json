@@ -1,6 +1,6 @@
 {
   "model_class": "SmallUNet",
-  "base_ch": 48,
+  "base_ch": 64,
   "img_size": 128,
-  "threshold": 0.5499999999999999
+  "threshold": 0.7
 }

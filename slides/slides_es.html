@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Segmentación de Tumores Cerebrales en MRI — Diapositivas</title>
+
+<!-- Reveal.js 5.x from CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme" />
+
+<!-- Syntax highlighting for code blocks -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+
+<!-- MathJax for LaTeX equations -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$'], ['\\(','\\)']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  /* ── Global ────────────────────────────────────────────── */
+  :root {
+    --accent: #b91c1c;          /* red-700 */
+    --accent-light: #fee2e2;    /* red-100 */
+    --danger: #991b1b;          /* red-800 */
+    --success: #16a34a;         /* green-600 */
+    --muted: #4b5563;           /* slate-600 */
+    --bg-code: #2b0208;         /* dark red / near black */
+  }
+
+  .reveal {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  .reveal h1, .reveal h2, .reveal h3 {
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.02em;
+  }
+  .reveal h1 { font-size: 1.75em; color: var(--accent); }
+  .reveal h2 { font-size: 1.25em; color: #1e293b; }
+  .reveal h3 { font-size: 0.9em; color: var(--accent); }
+  .reveal p, .reveal li { font-size: 0.62em; line-height: 1.45; color: #334155; }
+  .reveal li { margin-bottom: 0.2em; }
+  .reveal code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.82em; }
+  .reveal pre { width: 100%; }
+  .reveal pre code { padding: 0.8em; border-radius: 8px; font-size: 0.5em; line-height: 1.4; }
+
+  /* ── Utility classes ───────────────────────────────────── */
+  .tag {
+    display: inline-block;
+    padding: 0.12em 0.5em;
+    border-radius: 9999px;
+    font-size: 0.55em;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  .tag-blue   { background: var(--accent-light); color: var(--accent); }
+  .tag-red    { background: #fee2e2; color: var(--danger); }
+  .tag-green  { background: #dcfce7; color: var(--success); }
+  .tag-gray   { background: #f1f5f9; color: var(--muted); }
+
+  .text-muted  { color: var(--muted); }
+  .text-accent { color: var(--accent); }
+  .text-danger { color: var(--danger); }
+  .text-small  { font-size: 0.5em; }
+  .text-disclaimer { font-size: 0.48em; color: var(--muted); font-style: italic; }
+
+  .emoji { font-style: normal; }
+
+  /* Two-column layout */
+  .cols { display: flex; gap: 2em; align-items: flex-start; }
+  .cols > * { flex: 1; }
+  .cols-60-40 > :first-child { flex: 3; }
+  .cols-60-40 > :last-child  { flex: 2; }
+  .cols-40-60 > :first-child { flex: 2; }
+  .cols-40-60 > :last-child  { flex: 3; }
+
+  /* Box styles */
+  .box {
+    border-radius: 8px;
+    padding: 0.5em 0.8em;
+    margin: 0.4em 0;
+    font-size: 0.6em;
+  }
+  .box-blue   { background: #eff6ff; border-left: 4px solid var(--accent); }
+  .box-red    { background: #fef2f2; border-left: 4px solid var(--danger); }
+  .box-green  { background: #f0fdf4; border-left: 4px solid var(--success); }
+  .box-gray   { background: #f8fafc; border-left: 4px solid #cbd5e1; }
+
+  /* Table */
+  .reveal table { font-size: 0.55em; width: 100%; border-collapse: collapse; margin: 0.4em 0; }
+  .reveal table th { background: var(--accent); color: white; padding: 0.35em 0.6em; text-align: left; font-weight: 600; }
+  .reveal table td { padding: 0.3em 0.6em; border-bottom: 1px solid #e2e8f0; }
+  .reveal table tr:nth-child(even) td { background: #f8fafc; }
+
+  /* Diagram / ASCII art */
+  .diagram {
+    background: var(--bg-code);
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 0.7em 1em;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.42em;
+    line-height: 1.4;
+    text-align: left;
+    white-space: pre;
+    overflow-x: auto;
+    display: inline-block;
+    margin: 0.3em auto;
+  }
+
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+    margin: 0.75em auto;
+    padding-bottom: 56.25%;
+    height: 0;
+  }
+  .video-wrapper iframe {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border: 0;
+  }
+
+  .centered-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2.5em 1.5em;
+    min-height: 62vh;
+  }
+
+  /* Title slide */
+  .title-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2.2em 2.5em;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #b91c1c, #f87171);
+    color: white;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  }
+  .title-slide .logo {
+    width: 88px;
+    height: auto;
+    margin-bottom: 0.8em;
+  }
+  .title-slide h1 { font-size: 1.8em; margin-bottom: 0.1em; color: white; }
+  .title-slide .subtitle { font-size: 0.85em; color: rgba(255, 255, 255, 0.9); margin-bottom: 1em; }
+  .title-slide .meta { font-size: 0.58em; color: rgba(255, 255, 255, 0.75); }
+
+  /* Presentation slide */
+  .presentation-slide {
+    position: relative;
+    padding-top: 1.1em;
+  }
+  .presentation-slide .cmm-logo {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    width: 104px;
+    opacity: 0.95;
+    filter: drop-shadow(0 0 14px rgba(0, 0, 0, 0.3));
+  }
+  .presentation-slide .profile {
+    display: flex;
+    flex-direction: row;
+    gap: 1.8em;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-top: 1.2em;
+  }
+  .presentation-slide .profile-details {
+    flex: 1;
+    min-width: 320px;
+    max-width: 56em;
+  }
+  .presentation-slide .profile-photo {
+    width: 260px;
+    height: 330px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 2px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    flex-shrink: 0;
+  }
+  @media (max-width: 840px) {
+    .presentation-slide .profile {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .presentation-slide .profile-details {
+      max-width: 90%;
+      min-width: 0;
+    }
+    .presentation-slide .profile-photo {
+      width: 230px;
+      height: 290px;
+    }
+  }
+
+  /* Section divider slides */
+  .section-divider { text-align: center; }
+  .section-divider h2 { font-size: 1.8em; color: var(--accent); margin-bottom: 0.2em; }
+  .section-divider .section-num { font-size: 1.5em; color: var(--accent); opacity: 0.3; font-weight: 800; }
+
+  /* Arrow flow */
+  .flow { display: flex; align-items: center; justify-content: center; gap: 0.25em; font-size: 0.6em; flex-wrap: wrap; }
+  .flow-box {
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 0.3em 0.6em;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85em;
+  }
+  .flow-arrow { color: var(--muted); font-size: 1.1em; }
+
+  /* Highlight box for key formulas */
+  .formula-box {
+    background: #eff6ff;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.5em 0.8em;
+    text-align: center;
+    margin: 0.4em auto;
+    max-width: 90%;
+  }
+
+  /* Override MathJax SVG sizing in slides */
+  mjx-container { font-size: 95% !important; }
+
+  /* Footer */
+  .slide-footer {
+    position: absolute;
+    bottom: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.45em;
+    color: #94a3b8;
+  }
+</style>
+</head>
+
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!--  SLIDE TÍTULO                                                -->
+<!-- ============================================================ -->
+<section>
+  <div class="title-slide" style="margin-top:1em">
+    <h1>Aplicación de Deep Learning en Salud:</h1>
+    <h1>Segmentación de Tumores Cerebrales en MRI</h1>
+    <div class="subtitle">De los baselines clásicos al Deep Learning en MRI</div>
+   <div class="subtitle"> 
+    Diego Olguín — dolguin@cmm.uchile.cl
+    </div>
+    <div class="meta">
+      Charla práctica que cubre datos, modelos, entrenamiento, evaluación y AI responsable
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!--  SLIDE PRESENTACIÓN                                           -->
+<!-- ============================================================ -->
+<section class="presentation-slide">
+  <img src="../logos/cmm_logo_new.png" alt="CMM logo" class="cmm-logo" />
+  <h2>Presentación</h2>
+  <p style="font-size:0.7em; color:var(--muted);">Un poco sobre mí y por qué me interesa lo que veremos hoy.</p>
+  <div class="profile">
+    <div class="profile-details">
+      <h3>¿Quién soy?</h3>
+      <ul>
+        <li> Soy <strong>Diego Olguín</strong>, Research Engineer en la línea de Salud Digital del <strong>Centro de Modelamiento Matemático</strong>.</li>
+        <li> Ingeniero Civil Matemático y Magíster en Matemática Aplicada de la Universidad de Chile.</li>
+        <li> Me enfoco en <strong>aplicaciones de la matemática y la inteligencia artificial</strong> a gestión hospitalaria, epidemiología e imágenes médicas.</li>
+        <li> Lo que veremos hoy es parte de un trabajo conjunto con <strong>Neurospin</strong>, un laboratorio francés de imágenes cerebrales.</li>
+      </ul>
+    </div>
+    <img src="../logos/foto_diego.jpeg" alt="Foto de Diego" class="profile-photo" />
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!--  OBJETIVOS DE APRENDIZAJE                                     -->
+<!-- ============================================================ -->
+<section>
+  <h2>Objetivos de aprendizaje</h2>
+  <p style="color:var(--muted);font-size:0.58em;">Los objetivos de esta charla son&hellip;</p>
+  <ol>
+    <li class="fragment"><strong>Cargar y explorar</strong> datos de MRI cerebrales; entender emparejamiento imagen–máscara</li>
+    <li class="fragment"><strong>Construir un baseline clásico</strong> (umbral de Otsu) y entender por qué falla</li>
+    <li class="fragment"><strong>Diseñar y entrenar</strong> un U-Net con bloques residuales, atención SE y EMA</li>
+    <li class="fragment"><strong>Evaluar rigurosamente</strong> — métricas por slice, agregación por paciente, análisis de fallos</li>
+    <li class="fragment"><strong>Discutir limitaciones</strong> y uso responsable de AI en imagen médica</li>
+  </ol>
+  <div class="box box-red fragment" style="margin-top:0.5em;">
+    ⚠️ Esto es un <strong>prototipo educativo</strong> — NO es un dispositivo clínico. Las salidas nunca deben usarse para diagnóstico.
+  </div>
+</section>
+
+<section>
+  <h2>Material de esta charla</h2>
+  <p style="color:var(--muted); font-size:0.65em;">Todo el código y los datos de ejemplo están en GitHub — puedes clonar el repositorio y ejecutar los notebooks tú mismo.</p>
+  <div style="display:flex; flex-direction:column; align-items:center; gap:0.9em; margin-top:1em;">
+    <div style="text-align:center;">
+      <p style="margin:0.3em 0 0.6em; font-weight:700;">Repositorio</p>
+      <a href="https://github.com/diegoolguinw/brain_mri_analyzer" target="_blank" rel="noopener noreferrer" style="color:var(--accent); font-weight:700; text-decoration:none;">github.com/diegoolguinw/brain_mri_analyzer</a>
+    </div>
+    <div style="text-align:center;">
+      <p style="margin:0.3em 0 0.6em; font-weight:700;">Escanea el QR</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=https://github.com/diegoolguinw/brain_mri_analyzer" alt="QR GitHub repo" style="border-radius:12px; border:1px solid rgba(148,163,184,0.4);" />
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!--  HOJA DE RUTA                                                 -->
+<!-- ============================================================ -->
+<section>
+  <h2>Hoja de ruta de la charla</h2>
+  <div class="flow" style="margin-top:0.6em;">
+    <div class="flow-box" style="background:#f0fdf4;color:#166534;">0 · Primeros pasos</div><span class="flow-arrow">→</span>
+    <div class="flow-box">1 · Datos</div><span class="flow-arrow">→</span>
+    <div class="flow-box">2 · Baseline</div><span class="flow-arrow">→</span>
+    <div class="flow-box">3 · Teoría</div><span class="flow-arrow">→</span>
+    <div class="flow-box">4 · Modelo</div><span class="flow-arrow">→</span>
+    <div class="flow-box">5 · Entrenamiento</div><span class="flow-arrow">→</span>
+    <div class="flow-box">6 · Evaluación</div><span class="flow-arrow">→</span>
+    <div class="flow-box">7 · Ética</div>
+  </div>
+  <table style="margin-top:0.8em;">
+    <thead><tr><th>#</th><th>Sección</th><th>Pregunta clave</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Primeros pasos</td><td>¿Qué son redes neuronales, convoluciones y segmentación?</td></tr>
+      <tr><td>1</td><td>Datos y contexto</td><td>¿Cómo se ve un MRI cerebral?</td></tr>
+      <tr><td>2</td><td>Baseline</td><td>¿Hasta dónde puede llegar un método simple?</td></tr>
+      <tr><td>3</td><td>Teoría</td><td>¿Cómo funciona y por qué el U-Net?</td></tr>
+      <tr><td>4</td><td>Modelo</td><td>¿Cómo lo implementamos en PyTorch?</td></tr>
+      <tr><td>5</td><td>Entrenamiento</td><td>¿Cómo manejamos el desbalance de clases?</td></tr>
+      <tr><td>6</td><td>Evaluación</td><td>¿Cómo sabemos si el modelo es suficientemente bueno?</td></tr>
+      <tr><td>7</td><td>AI responsable</td><td>¿Es seguro desplegar este modelo?</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 0 — PRIMEROS PASOS                                   -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">00</div>
+    <h2>Primeros pasos</h2>
+    <p class="text-muted" style="font-size:0.65em;">Conceptos clave que necesitas antes de comenzar</p>
+  </section>
+
+  <section>
+    <h2>¿Qué es MRI?</h2>
+    <div class="cols">
+      <div>
+        <p><strong>Resonancia Magnética (MRI)</strong> usa campos magnéticos fuertes y ondas de radio para crear imágenes detalladas de órganos y tejidos — <em>sin radiación</em>.</p>
+        <table>
+          <thead><tr><th>Propiedad</th><th>Detalles</th></tr></thead>
+          <tbody>
+            <tr><td>Cómo funciona</td><td>Los átomos de hidrógeno en el agua se alinean con el imán y emiten señales de radio cuando se pulsan</td></tr>
+            <tr><td>Resolución</td><td>Sub-milimétrica — puede ver estructuras finas del cerebro</td></tr>
+            <tr><td>Contraste</td><td>Diferentes tejidos aparecen como distintos tonos de gris</td></tr>
+            <tr><td>Slices</td><td>El cerebro se imagina en secciones 2D llamadas <strong>slices</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="box box-blue">
+          <strong>Clave para nosotros:</strong> Una slice de MRI es simplemente una <strong>imagen en escala de grises</strong> donde cada píxel codifica tipo de tejido. Más brillante = más contenido de agua (los tumores suelen verse brillantes).
+        </div>
+        <div class="box box-gray" style="margin-top:0.3em;">
+          <strong>Planos de visualización:</strong>
+          <ul style="font-size:1.05em;">
+            <li><strong>Axial</strong> — vista de arriba hacia abajo (nuestro dataset usa esta)</li>
+            <li><strong>Sagital</strong> — vista lateral</li>
+            <li><strong>Coronal</strong> — vista frontal</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>¿Qué es un glioma?</h2>
+    <div class="cols">
+      <div>
+        <p>Un <strong>glioma</strong> es un tipo de tumor cerebral que surge de las <em>células gliales</em>, las células de soporte del sistema nervioso.</p>
+        <table>
+          <thead><tr><th>Grado</th><th>Nombre</th><th>Comportamiento</th></tr></thead>
+          <tbody>
+            <tr><td>I–II</td><td><strong>Bajo grado</strong> (LGG) ←&nbsp;nuestro dataset</td><td>Crecimiento lento, mejor pronóstico</td></tr>
+            <tr><td>III</td><td>Anaplásico</td><td>Agresividad intermedia</td></tr>
+            <tr><td>IV</td><td>Glioblastoma (GBM)</td><td>Muy agresivo, peor pronóstico</td></tr>
+          </tbody>
+        </table>
+        <div class="box box-blue" style="margin-top:0.3em;">
+          💡 Nuestro dataset consiste en <strong>Gliomas de Bajo Grado</strong> — tienden a tener límites bien definidos, lo que los hace un buen punto de partida para segmentación.
+        </div>
+      </div>
+      <div>
+        <h3>Por qué importa la segmentación</h3>
+        <ul>
+          <li><strong>Diagnóstico:</strong> medir tamaño y ubicación del tumor</li>
+          <li><strong>Planificación quirúrgica:</strong> definir márgenes seguros de resección</li>
+          <li><strong>Radioterapia:</strong> dirigir la radiación con precisión</li>
+          <li><strong>Monitoreo:</strong> seguir el crecimiento en el tiempo (p. ej., cada 6 meses)</li>
+        </ul>
+        <p style="font-size:0.6em;margin-top:0.4em;">La segmentación manual por un radiólogo puede tomar <strong>15–30 minutos por examen</strong> — la automatización podría ahorrar tiempo clínico importante.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tareas de visión por computador — ¿dónde encaja la segmentación?</h2>
+    <table>
+      <thead><tr><th>Tarea</th><th>Pregunta</th><th>Salida</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Clasificación</strong></td><td>"¿Qué hay en esta imagen?"</td><td>Etiqueta única</td><td>"Esta es una MRI cerebral"</td></tr>
+        <tr><td><strong>Detección de objetos</strong></td><td>"¿Dónde están los objetos?"</td><td>Cajas delimitadoras + etiquetas</td><td>Un rectángulo alrededor del tumor</td></tr>
+        <tr><td><strong>Segmentación semántica</strong></td><td>"¿Qué es cada píxel?"</td><td>Mapa de etiquetas por píxel</td><td>Cada píxel → tumor o sano ← <strong>nuestra tarea</strong></td></tr>
+        <tr><td><strong>Segmentación de instancias</strong></td><td>"¿A qué objeto pertenece cada píxel?"</td><td>Etiqueta por píxel + ID de instancia</td><td>Máscara separada para tumor A vs tumor B</td></tr>
+      </tbody>
+    </table>
+    <div class="box box-green" style="margin-top:0.4em;">
+      🎯 <strong>Segmentación semántica</strong> es la tarea más común en imagen médica — necesitamos fronteras precisas a nivel de píxel, no solo cajas.
+    </div>
+  </section>
+
+  <section>
+    <h2>¿Qué es una red neuronal?</h2>
+    <div class="cols">
+      <div>
+        <p>Una red neuronal es una función que <strong>aprende de los datos</strong> ajustando pesos internos.</p>
+        <div class="diagram" style="margin:0.4em 0;">
+Input → [Layer 1] → [Layer 2] → ... → [Layer N] → Output
+           ↑            ↑                  ↑
+        weights      weights            weights
+        (learned)    (learned)          (learned)</div>
+        <h3 style="margin-top:0.4em;">Vocabulario clave</h3>
+        <table>
+          <thead><tr><th>Término</th><th>Significado</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Peso</strong></td><td>Un número aprendible que escala señales de entrada</td></tr>
+            <tr><td><strong>Activación</strong></td><td>Función no lineal (p. ej., ReLU) que permite aprender patrones complejos</td></tr>
+            <tr><td><strong>Capa</strong></td><td>Conjunto de operaciones aplicadas a los datos (p. ej., convolución + activación)</td></tr>
+            <tr><td><strong>Parámetro</strong></td><td>Cualquier valor aprendible — nuestro modelo tiene ~17.5M de ellos</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Cómo aprende</h3>
+        <ol>
+          <li class="fragment"><strong>Forward pass:</strong> la entrada recorre las capas → predicción</li>
+          <li class="fragment"><strong>Pérdida:</strong> comparar predicción con la ground-truth → puntuación de error</li>
+          <li class="fragment"><strong>Backward pass (backprop):</strong> calcular cómo cada peso contribuyó al error</li>
+          <li class="fragment"><strong>Actualización:</strong> ajustar pesos para reducir el error (descenso por gradiente)</li>
+        </ol>
+        <div class="box box-blue fragment" style="margin-top:0.3em;">
+          💡 Repetir esto millones de veces sobre muchas imágenes → la red aprende a reconocer patrones (como tumores en MRI).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>¿Qué es una convolución?</h2>
+    <div class="cols">
+      <div>
+        <p>Una <strong>convolución</strong> desliza un filtro pequeño (kernel) sobre la imagen, produciendo un <strong>mapa de características</strong> que resalta ciertos patrones.</p>
+        <div class="diagram" style="margin:0.4em 0;">
+Image (5×5)         Kernel (3×3)       Feature Map (3×3)
+
+┌─┬─┬─┬─┬─┐       ┌───┬───┬───┐
+│1│0│1│0│1│       │-1 │ 0 │ 1 │      ┌───┬───┬───┐
+├─┼─┼─┼─┼─┤       ├───┼───┼───┤      │   │   │   │
+│0│1│0│1│0│  ✱    │-1 │ 0 │ 1 │  →   │ . │ . │ . │
+├─┼─┼─┼─┼─┤       ├───┼───┼───┤      │   │   │   │
+│1│0│1│0│1│       │-1 │ 0 │ 1 │      └───┴───┴───┘
+├─┼─┼─┼─┼─┤       └───┴───┴───┘
+│0│1│0│1│0│       (detector de bordes)
+├─┼─┼─┼─┼─┤
+│1│0│1│0│1│
+└─┴─┴─┴─┴─┘</div>
+      </div>
+      <div>
+        <h3>¿Por qué convoluciones para imágenes?</h3>
+        <ul>
+          <li class="fragment"><strong>Patrones locales:</strong> un kernel 3×3 observa un vecindario pequeño — útil para bordes y texturas</li>
+          <li class="fragment"><strong>Invarianza a la traslación:</strong> el mismo filtro aplicado en todo el mapa → detecta un tumor sin importar su posición</li>
+          <li class="fragment"><strong>Parámetros compartidos:</strong> un filtro para toda la imagen (muy eficiente frente a capas totalmente conectadas)</li>
+          <li class="fragment"><strong>Características jerárquicas:</strong> apilar convoluciones → bajo nivel (bordes) → medio (formas) → alto (órganos, tumores)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="box box-gray fragment" style="margin-top:0.3em;">
+          <strong>CNN = Convolutional Neural Network</strong><br/>
+          Una red donde la mayoría de las capas son convoluciones. La base de la visión por computador moderna.
+        </div>
+  </section>
+
+  <section class="centered-slide">
+    <h2>Video: ¿Qué es una convolución?</h2>
+    <div class="video-wrapper" style="margin-top:5em;">
+      <a href="https://www.youtube.com/watch?v=KuXjwB4LzSA&t=515s" target="_blank" rel="noopener noreferrer" referrerpolicy="strict-origin-when-cross-origin" style="display:block; width:100%; height:100%; text-decoration:none;">
+        <img src="https://img.youtube.com/vi/KuXjwB4LzSA/maxresdefault.jpg" alt="Video: Qué es una convolución" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" />
+        <div style="position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:1.1em;">
+          <div style="background:rgba(0,0,0,0.55); padding:0.7em 1.1em; border-radius:999px; font-size:1.05em; color:white; font-weight:700;">
+            ▶ Ver en YouTube (min 8:35)
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Aprendizaje supervisado — Visión general</h2>
+    <div class="flow" style="margin:0.5em 0;">
+      <div class="flow-box">Datos etiquetados<br/><span style="font-size:0.7em">(imagen + máscara)</span></div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">Entrenar</div><span class="flow-arrow">→</span>
+      <div class="flow-box">Modelo</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">Evaluar</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#dcfce7;color:#166534;">Desplegar</div>
+    </div>
+    <div class="cols" style="margin-top:0.4em;">
+      <div>
+        <table>
+          <thead><tr><th>Concepto</th><th>Significado</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Conjunto de entrenamiento</strong></td><td>Datos que el modelo aprende (ve etiquetas)</td></tr>
+            <tr><td><strong>Conjunto de validación</strong></td><td>Datos reservados para monitorear rendimiento durante el entrenamiento</td></tr>
+            <tr><td><strong>Conjunto de prueba</strong></td><td>Datos finales no vistos para evaluación definitiva</td></tr>
+            <tr><td><strong>Sobreajuste</strong></td><td>El modelo memoriza los datos de entrenamiento, rinde mal en datos nuevos</td></tr>
+            <tr><td><strong>Generalización</strong></td><td>El modelo funciona bien en datos que no ha visto</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="box box-red">
+          <strong>Regla de oro:</strong><br/>
+          Nunca evalúes en datos que el modelo vio durante el entrenamiento. Usa siempre un conjunto de validación/prueba <strong>separado</strong>.
+        </div>
+        <div class="box box-blue" style="margin-top:0.3em;">
+          💡 Nuestra división: <strong>~75% entrenamiento</strong> (con augmentation) y <strong>~25% validación</strong>. En entrenamiento enriquecemos con slices que contienen tumor.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Bloques comunes en DL — Glosario</h2>
+    <table>
+      <thead><tr><th>Bloque</th><th>Qué hace</th><th>Analogía</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Conv2d</strong></td><td>Aplica filtros aprendidos para detectar patrones espaciales</td><td>Una lupa que busca características</td></tr>
+        <tr><td><strong>MaxPool</strong></td><td>Reduce manteniendo el valor máximo en cada región</td><td>Alejar la vista — ver el panorama, perder detalle fino</td></tr>
+        <tr><td><strong>BatchNorm</strong></td><td>Normaliza activaciones a media 0 y varianza 1</td><td>Mantiene señales en un rango cómodo para entrenar</td></tr>
+        <tr><td><strong>ReLU</strong></td><td>$\max(0, x)$ — pone a cero valores negativos</td><td>Un interruptor que deja pasar señales positivas</td></tr>
+        <tr><td><strong>Dropout</strong></td><td>Apaga aleatoriamente algunas activaciones durante el entrenamiento</td><td>Evita que la red dependa de una sola característica</td></tr>
+        <tr><td><strong>Sigmoid</strong></td><td>Aplana la salida a $[0,1]$ — interpretable como probabilidad</td><td>Un medidor de confianza: 0 = fondo, 1 = tumor</td></tr>
+        <tr><td><strong>ConvTranspose2d</strong></td><td>Upsampling aprendido — aumenta resolución espacial</td><td>Acercar — recuperar detalle espacial</td></tr>
+      </tbody>
+    </table>
+    <div class="box box-gray" style="margin-top:0.3em;">
+      📌 Verás todos estos en nuestro U-Net. No te preocupes si parecen abstractos ahora — los veremos en contexto.
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 1 — DATOS                                         -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">01</div>
+    <h2>Datos y contexto clínico</h2>
+    <p class="text-muted" style="font-size:0.65em;">Entender el problema antes de escribir código</p>
+  </section>
+
+  <section>
+    <h2>El dataset — LGG MRI Segmentation</h2>
+    <div class="cols">
+      <div>
+        <table>
+          <thead><tr><th>Propiedad</th><th>Detalles</th></tr></thead>
+          <tbody>
+            <tr><td>Nombre</td><td><strong>LGG (Low-Grade Glioma) MRI Segmentation</strong></td></tr>
+            <tr><td>Fuente</td><td>Kaggle — anotado por radiólogos expertos (Buda et al.)</td></tr>
+            <tr><td>Pacientes</td><td>110 sujetos con escaneos cerebrales</td></tr>
+            <tr><td>Total de slices</td><td>~3,929 pares imagen-máscara</td></tr>
+            <tr><td>Modalidad</td><td>FLAIR MRI — slices axiales (vista superior)</td></tr>
+            <tr><td>Resolución</td><td>~256×256 píxeles por slice</td></tr>
+            <tr><td>Tarea</td><td><strong>Segmentación binaria:</strong> cada píxel → tumor o sano</td></tr>
+            <tr><td>Formato</td><td>.tif imágenes; cada una con un _mask.tif correspondiente</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="box box-blue">
+          <strong>¿Qué es FLAIR?</strong><br/>
+          Fluid-Attenuated Inversion Recovery — una secuencia que <strong>suprime la señal del líquido cefalorraquídeo</strong>, haciendo que las lesiones tumorales se vean más brillantes y fáciles de detectar.
+        </div>
+        <div class="box box-gray" style="margin-top:0.3em;">
+          <strong>Estructura del dataset en disco:</strong>
+          <pre style="font-size:0.85em;margin:0.2em 0;line-height:1.3;">lgg-mri-segmentation/
+├── TCGA_CS_4941_19960909/
+│   ├── ..._12.tif        (imagen)
+│   └── ..._12_mask.tif   (máscara)
+├── TCGA_CS_4942_19970222/
+│   └── ...</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Estadísticas del dataset — ¿con qué trabajamos?</h2>
+    <div class="cols">
+      <div>
+        <table>
+          <thead><tr><th>Estadística</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Total pares imagen-máscara</td><td>~3,929</td></tr>
+            <tr><td>Slices con tumor</td><td>~30% (1,373)</td></tr>
+            <tr><td>Slices sin tumor</td><td>~70% (2,556)</td></tr>
+            <tr><td>Área media del tumor por slice</td><td>&lt; 5% de los píxeles</td></tr>
+            <tr><td>Pacientes con tumores muy pequeños</td><td>Común — tumor &lt; 1% de la imagen</td></tr>
+          </tbody>
+        </table>
+        <div class="box box-red" style="margin-top:0.3em;">
+          ⚠️ Este es un <strong>dataset pequeño</strong> según estándares de deep learning. ImageNet tiene 14M+ imágenes; tenemos ~4K. La augmentation y un diseño cuidadoso son críticos.
+        </div>
+      </div>
+      <div>
+        <h3>Desafíos para un modelo</h3>
+        <ul>
+          <li class="fragment"><strong>Desbalance de clases:</strong> los tumores son una fracción pequeña de los píxeles</li>
+          <li class="fragment"><strong>Desbalance por slice:</strong> la mayoría de las slices no contienen tumor</li>
+          <li class="fragment"><strong>Variabilidad:</strong> los tumores difieren en tamaño, forma, ubicación y contraste</li>
+          <li class="fragment"><strong>Ambigüedad:</strong> los bordes tumorales pueden ser difusos</li>
+          <li class="fragment"><strong>Diferencias entre escáneres:</strong> las propiedades de la señal varían según la máquina</li>
+        </ul>
+        <div class="box box-blue fragment" style="margin-top:0.3em;">
+          💡 Entender tus datos es el <strong>paso cero</strong> en cualquier proyecto de ML.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Emparejamiento Imagen–Máscara</h2>
+    <div class="cols">
+      <div>
+        <h3>Slice MRI (Entrada)</h3>
+        <ul>
+          <li>Imagen en escala de grises, ~256×256 píxeles</li>
+          <li>Intensidad = tipo y densidad de tejido</li>
+          <li>Cerebro, cráneo, ventrículos y tumor tienen intensidades distintas</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Máscara de tumor (Etiqueta)</h3>
+        <ul>
+          <li>Imagen binaria — mismas dimensiones</li>
+          <li>Blanco (1) = píxel tumoral</li>
+          <li>Negro (0) = todo lo demás</li>
+          <li>Dibujada por radiólogos expertos</li>
+        </ul>
+      </div>
+    </div>
+    <div class="box box-gray fragment" style="margin-top:0.5em;">
+      🎯 <strong>Objetivo:</strong> Entrenar un modelo que, dada solo la slice MRI, produzca automáticamente la máscara.
+    </div>
+  </section>
+
+  <section>
+    <h2>Desbalance de clases — El desafío central</h2>
+    <p style="font-size:0.58em;">El obstáculo más importante en segmentación médica es el <strong>desbalance extremo de clases</strong>.</p>
+    <div class="cols" style="margin-top:0.2em;align-items:flex-start;">
+      <div style="flex:1;">
+        <table style="font-size:0.48em;">
+          <thead><tr><th>Qué</th><th>Valor</th><th>Impacto</th></tr></thead>
+          <tbody>
+            <tr><td>Píxeles tumor por slice</td><td><strong>&lt; 5 %</strong></td><td>El fondo domina cada imagen</td></tr>
+            <tr><td>Slices sin tumor</td><td><strong>~70 %</strong></td><td>La mayoría de imágenes son completamente negativas</td></tr>
+            <tr><td>"Predecir todo fondo"</td><td><strong>&gt; 95 % acc</strong></td><td>Un modelo inútil puede parecer excelente</td></tr>
+          </tbody>
+        </table>
+        <div class="box box-red" style="font-size:0.48em;margin-top:0.2em;">
+          ❌ La accuracy es engañosa — necesitamos métricas de <em>overlap</em> (IoU, Dice) que premien la detección real de tumores.
+        </div>
+      </div>
+      <div style="flex:1.1;">
+        <table style="font-size:0.48em;">
+          <thead><tr><th>Nivel</th><th>Técnica</th><th>Cómo ayuda</th></tr></thead>
+          <tbody>
+            <tr><td>🗂️ Dataset</td><td>Enriquecer a ~75 % slices con tumor</td><td>Suficientes positivos para aprender</td></tr>
+            <tr><td>📦 Batch</td><td>WeightedRandomSampler</td><td>Mezcla balanceada en cada mini-batch</td></tr>
+            <tr><td>📉 Pérdida</td><td>pos_weight + Focal-Tversky</td><td>Penaliza más los falsos negativos</td></tr>
+          </tbody>
+        </table>
+        <div class="box box-blue" style="font-size:0.48em;margin-top:0.2em;">
+          💡 Ninguna técnica por sí sola basta — combinarlas impide que el modelo aprenda a "ignorar" tumores.
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 2 — BASELINE                                       -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">02</div>
+    <h2>Baseline clásico</h2>
+    <p class="text-muted" style="font-size:0.75em;">Umbral de Otsu — la segmentación más simple</p>
+  </section>
+
+  <section>
+    <h2>¿Por qué empezar con un baseline?</h2>
+    <ol>
+      <li class="fragment"><strong>Entender la dificultad</strong> — si un método simple funciona, ¿necesitamos deep learning?</li>
+      <li class="fragment"><strong>Fijar un piso de rendimiento</strong> — cualquier modelo ML debería superarlo claramente</li>
+      <li class="fragment"><strong>Identificar modos de fallo</strong> — entender <em>por qué</em> falla guía el diseño del modelo</li>
+    </ol>
+    <div class="box box-blue fragment" style="margin-top:0.5em;">
+      📏 Siempre establece un baseline <strong>antes</strong> de saltar a enfoques complejos.
+    </div>
+  </section>
+
+  <section>
+    <h2>Método de Otsu — Cómo funciona</h2>
+    <div class="cols" style="align-items:flex-start;">
+      <div style="flex:1;">
+        <p style="font-size:0.55em;"><strong>Idea central:</strong> Encontrar el umbral de intensidad $\tau^*$ que mejor separa los píxeles en primer plano y fondo, maximizando la varianza entre clases.</p>
+        <div class="formula-box" style="margin:0.3em 0;font-size:0.9em;">
+          $\tau^* = \arg\max_{\tau} \; \dfrac{[\mu_T \cdot \omega(\tau) - \mu(\tau)]^2}{\omega(\tau) \cdot (1 - \omega(\tau))}$
+        </div>
+        <table style="font-size:0.46em;">
+          <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+          <tbody>
+            <tr><td>$\omega(\tau)$</td><td>Fracción de píxeles con intensidad $\leq \tau$</td></tr>
+            <tr><td>$\mu(\tau)$</td><td>Media de intensidad de píxeles $\leq \tau$</td></tr>
+            <tr><td>$\mu_T$</td><td>Media de intensidad de la imagen completa</td></tr>
+            <tr><td>$\sigma_B^2(\tau)$</td><td>Varianza entre-clases — cuán <em>separados</em> están los grupos</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="flex:1;">
+        <div class="box box-gray" style="font-size:0.75em;">
+          <strong>Algoritmo (5 pasos):</strong>
+          <ol style="margin:0.2em 0 0 1em;">
+            <li>Construir un <strong>histograma</strong> de intensidades</li>
+            <li>Para cada umbral $\tau$ (0–255):</li>
+            <li>&nbsp;&nbsp;Separar en oscuro ($\leq\tau$) y brillante ($>\tau$)</li>
+            <li>&nbsp;&nbsp;Calcular varianza entre-clases</li>
+            <li>Elegir $\tau^*$ que <strong>maximice</strong> la separación</li>
+          </ol>
+        </div>
+        <p style="font-size:0.75em;margin-top:0.5em;"><strong>Intuición:</strong> Dos picos en el histograma (tejido oscuro y tumor brillante) — Otsu encuentra el <strong>valle</strong> entre ellos.</p>
+        <div class="cols" style="gap:0.4em;margin-top:0.5em;">
+          <div class="box box-green" style="flex:1;font-size:0.75em;">
+            ✅ No supervisado, rápido O(n), determinista, simple
+          </div>
+          <div class="box box-red" style="flex:1;font-size:0.75em;">
+            ❌ Asume histograma bimodal — falla cuando estructuras brillantes se solapan
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Por qué Otsu falla en MRI cerebral</h2>
+    <div class="cols">
+      <div>
+        <h3>Qué sale mal</h3>
+        <ul>
+          <li class="fragment">Trata cada píxel <strong>independientemente</strong> — sin contexto espacial</li>
+          <li class="fragment">No distingue tumor de otras <strong>estructuras brillantes</strong> (cráneo, ventrículos)</li>
+          <li class="fragment">Umbral global único para toda la <strong>imagen</strong></li>
+          <li class="fragment">Sin noción de forma, textura o límites anatómicos</li>
+        </ul>
+      </div>
+      <div class="fragment">
+        <h3>Resultado típico</h3>
+        <div class="box box-red">
+          <strong>Sobre-segmentación</strong><br/>
+          Otsu marca TODAS las regiones brillantes como positivas — cráneo, ventrículos y artefactos junto con el tumor real.
+        </div>
+        <p style="font-size:0.65em;margin-top:0.5em;"> En el cerebro existen muchas estructuras brillantes además de los tumores.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ejemplo de resultado de Otsu</h2>
+    <div class="centered-slide">
+      <img src="../images/otsu_res_index_1667.png" alt="Resultado de Otsu" style="max-width:90%; border:1px solid rgba(0,0,0,0.12); border-radius:8px;" />
+      <p class="text-muted" style="font-size:0.65em; margin-top:0.6em;">Salida del umbral de Otsu (slice #1667) mostrando sobresegmentación.</p>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 3 — TEORÍA U-NET                                   -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">03</div>
+    <h2>Arquitectura U-Net</h2>
+    <p class="text-muted" style="font-size:0.75em;">La herramienta principal en segmentación médica</p>
+  </section>
+
+  <section>
+    <h2>Del baseline al Deep Learning</h2>
+    <table>
+      <thead><tr><th>Limitación de Otsu</th><th>Cómo ayuda el Deep Learning</th></tr></thead>
+      <tbody>
+        <tr><td>Sin contexto espacial</td><td>Las convoluciones aprenden patrones locales y globales</td></tr>
+        <tr><td>No distingue tumor del cráneo</td><td>Entrenado con etiquetas para reconocer características tumorales</td></tr>
+        <tr><td>Umbral global único</td><td>Mapas de probabilidad por píxel con confianza variable</td></tr>
+        <tr><td>Sin sensibilidad a forma/textura</td><td>Las características profundas aprenden priors anatómicos</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Arquitecturas de segmentación — ¿dónde encaja U-Net?</h2>
+    <table>
+      <thead><tr><th>Arquitectura</th><th>Año</th><th>Idea clave</th><th>Pros</th><th>Contras</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FCN</strong></td><td>2015</td><td>Reemplazar capas FC por convoluciones → predicción densa</td><td>Primera CNN end-to-end para segmentación</td><td>Fronteras poco precisas</td></tr>
+        <tr><td><strong>U-Net</strong> ← nuestro</td><td>2015</td><td>Encoder-decoder con conexiones de skip</td><td>Excelente con datasets pequeños, bordes precisos</td><td>Requiere mucha memoria (guarda mapas completos)</td></tr>
+        <tr><td><strong>SegNet</strong></td><td>2017</td><td>Decoder con índices de pooling</td><td>Más eficiente en memoria</td><td>Menos preciso que los skips de U-Net</td></tr>
+        <tr><td><strong>DeepLab v3+</strong></td><td>2018</td><td>Convoluciones atrous + ASPP para contexto multi-escala</td><td>Excelente en imágenes naturales</td><td>Backbone pesado, menos ideal para datos médicos pequeños</td></tr>
+        <tr><td><strong>Attention U-Net</strong></td><td>2018</td><td>Agrega puertas de atención a los skip connections</td><td>Se enfoca en regiones relevantes</td><td>Más parámetros, más entrenamiento</td></tr>
+        <tr><td><strong>nnU-Net</strong></td><td>2021</td><td>U-Net auto-configurable (auto hyperparams)</td><td>SOTA en muchos benchmarks médicos</td><td>Búsqueda computacionalmente cara</td></tr>
+      </tbody>
+    </table>
+    <div class="box box-green" style="margin-top:0.3em;">
+      🏆 <strong>U-Net sigue siendo el estándar</strong> para segmentación médica <em>especialmente con datasets pequeños</em>. Sus skip connections preservan detalles finos que otras arquitecturas pierden.
+    </div>
+  </section>
+
+  <section>
+    <h2>U-Net — Idea clave</h2>
+    <p>Combinar <strong>semántica de alto nivel</strong> (qué) con <strong>detalle espacial fino</strong> (dónde)</p>
+    <p style="font-size:0.55em;color:var(--muted);margin-top:0.2em;">Cada bloque <strong>[Conv-Conv-SE]</strong> = dos convoluciones + <strong>Squeeze-and-Excitation</strong> (explicado en detalle más adelante).</p>
+    <div class="diagram" style="margin-top:0.3em;">
+              ENCODER                          DECODER
+         (captura contexto)              (recupera detalle espacial)
+
+ Input ──▶ [Conv-Conv-SE] ──────────────────▶ [Conv-Conv-SE] ──▶ Output
+                 │          skip connection          ▲
+                 ▼ MaxPool                   UpConv  │
+           [Conv-Conv-SE] ──────────────────▶ [Conv-Conv-SE]
+                 │          skip connection          ▲
+                 ▼ MaxPool                   UpConv  │
+           [Conv-Conv-SE] ──────────────────▶ [Conv-Conv-SE]
+                 │          skip connection          ▲
+                 ▼ MaxPool                   UpConv  │
+           [Conv-Conv-SE] ──────────────────▶ [Conv-Conv-SE]
+                 │          skip connection          ▲
+                 ▼ MaxPool                   UpConv  │
+                      [BOTTLENECK: Conv-Conv-SE]</div>
+  </section>
+
+  <section>
+    <h2>Tres caminos en U-Net</h2>
+    <div class="cols" style="margin-top:0.5em;">
+      <div>
+        <h3>⬇ Encoder</h3>
+        <ul>
+          <li>Reduce progresivamente la resolución</li>
+          <li>Mayor campo receptivo</li>
+          <li>Entiende el "panorama"</li>
+          <li>Canales: 1 → 48 → 96 → 192 → 384</li>
+        </ul>
+      </div>
+      <div>
+        <h3>⬆ Decoder</h3>
+        <ul>
+          <li>Sube la resolución espacial</li>
+          <li>Recupera detalles</li>
+          <li>Produce salida a nivel de píxel</li>
+          <li>Canales: 768 → 384 → 192 → 96 → 48</li>
+        </ul>
+      </div>
+      <div>
+        <h3>⟷ Skip Connections</h3>
+        <ul>
+          <li><strong>Concatena</strong> características del encoder al decoder</li>
+          <li>Previene pérdida de detalle fino</li>
+          <li>Une niveles de resolución iguales</li>
+          <li>¡Esto es lo que hace especial a U-Net!</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="centered-slide">
+    <h2>Video: ¿Cómo funciona U-Net?</h2>
+    <p style="color:var(--muted); font-size:0.65em; margin-top:0.2em;">(Ver en YouTube desde 3:05)</p>
+    <div class="video-wrapper" style="margin-top:5em;">
+      <a href="https://www.youtube.com/watch?v=NhdzGfB1q74&t=185s" target="_blank" rel="noopener noreferrer" referrerpolicy="strict-origin-when-cross-origin" style="display:block; width:100%; height:100%; text-decoration:none;">
+        <img src="https://img.youtube.com/vi/NhdzGfB1q74/maxresdefault.jpg" alt="Video U-Net" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" />
+        <div style="position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:1.1em;">
+          <div style="background:rgba(0,0,0,0.55); padding:0.7em 1.1em; border-radius:999px; font-size:1.05em; color:white; font-weight:700;">
+            ▶ Ver en YouTube (min 3:05)
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Nuestras mejoras</h2>
+    <p>Residual SE U-Net = U-Net básico + dos mejoras modernas</p>
+    <table>
+      <thead><tr><th>Componente</th><th>Qué hace</th><th>Por qué ayuda</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Conexiones residuales</strong></td>
+          <td>Suma entrada a la salida dentro de cada bloque</td>
+          <td>Estabiliza el flujo de gradiente, permite redes más profundas</td>
+        </tr>
+        <tr>
+          <td><strong>Atención SE</strong><br/><span style="font-size:0.85em;color:var(--muted);">(Squeeze-and-Excitation)</span></td>
+          <td>Pooling global → 2 FC → pesos por canal en [0,1]</td>
+          <td>Permite al modelo preguntarse "¿qué canales son más importantes aquí?" — amplifica características tumorales, suprime ruido</td>
+        </tr>
+        <tr>
+          <td><strong>Dropout</strong> (creciente)</td>
+          <td>Cero aleatorio de características durante el entrenamiento</td>
+          <td>Regularización — evita sobreajuste</td>
+        </tr>
+        <tr>
+          <td><strong>Batch Normalization</strong></td>
+          <td>Normaliza activaciones por mini-batch</td>
+          <td>Entrenamiento más rápido y estable</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Bloque Squeeze-and-Excitation (SE)</h2>
+    <p><em>Atención por canal:</em> "¿Qué canales de características son más útiles ahora?"</p>
+    <div class="flow" style="margin:1em 0;">
+      <div class="flow-box">Características de entrada</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">Pool global<br/><span style="font-size:0.7em">(Squeeze)</span></div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">FC → ReLU → FC<br/><span style="font-size:0.7em">(Excitation)</span></div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">Sigmoid<br/><span style="font-size:0.7em">(Pesos)</span></div><span class="flow-arrow">→</span>
+      <div class="flow-box">Escalar entrada</div>
+    </div>
+    <pre style="font-size:0.75em;"><code class="python" data-trim>
+class SEBlock(nn.Module):
+    def __init__(self, channels, reduction=8):
+        super().__init__()
+        hidden = max(channels // reduction, 8)
+        self.pool = nn.AdaptiveAvgPool2d(1)       # H×W → 1×1
+        self.fc = nn.Sequential(
+            nn.Conv2d(channels, hidden, 1),        # Comprimir
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden, channels, 1),        # Expandir
+            nn.Sigmoid(),                           # Pesos ∈ [0, 1]
+        )
+
+    def forward(self, x):
+        return x * self.fc(self.pool(x))           # Escala por canal
+    </code></pre>
+  </section>
+
+  <section>
+    <h2>Residual SE Block — Bloque principal</h2>
+    <p style="font-size:0.52em;">Cada etapa del encoder y decoder usa este bloque. Fusiona <strong>tres ideas</strong>: extracción de características, atención por canal y aprendizaje residual.</p>
+    <div class="cols" style="margin-top:0.15em;align-items:flex-start;">
+      <div style="flex:1.1;">
+        <div class="diagram" style="font-size:0.4em;margin:0.1em 0;line-height:1.45;text-align:left;">
+ x ──────────────────────────┐ (atajo identidad)
+ │                           │
+ ├─▶ Conv 3×3  (espacial)     │
+ ├─▶ BatchNorm (estabiliza)   │
+ ├─▶ ReLU      (activa)      │
+ ├─▶ Dropout   (regulariza)  │
+ ├─▶ Conv 3×3  (refina)       │
+ ├─▶ BatchNorm               │
+ ├─▶ SE Block  (atención)     │
+ │                           │
+ └────── ⊕ (suma) ◀──────────┘
+         │    ↑ 1×1 Conv si
+         ▼    C_in ≠ C_out
+       ReLU → salida</div>
+      </div>
+      <div style="flex:1;">
+        <table style="font-size:0.44em;margin-top:0;">
+          <thead><tr><th>Componente</th><th>Rol</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Conv 3×3 × 2</strong></td><td>Extrae y refina patrones espaciales</td></tr>
+            <tr><td><strong>BatchNorm</strong></td><td>Normaliza activaciones → entrenamiento más estable</td></tr>
+            <tr><td><strong>ReLU</strong></td><td>No linealidad para formas complejas</td></tr>
+            <tr><td><strong>Dropout</strong></td><td>Cero neuronas aleatorias → reduce overfitting</td></tr>
+            <tr><td><strong>SE Block</strong></td><td>Repondera canales según importancia</td></tr>
+            <tr><td><strong>⊕ Residual</strong></td><td>Fusiona características aprendidas con la entrada</td></tr>
+            <tr><td><strong>Conv 1×1</strong></td><td>Proyecta atajo si C_in ≠ C_out</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="cols fragment" style="margin-top:0.15em;gap:0.4em;">
+      <div class="box box-blue" style="flex:1;font-size:0.44em;">
+        🔁 <strong>¿Por qué residual?</strong> El atajo pasa información sin cambios → los gradientes fluyen con facilidad → resuelve el problema de <em>vanishing gradients</em>.
+      </div>
+      <div class="box box-green" style="flex:1;font-size:0.44em;">
+        🎯 <strong>¿Por qué SE aquí?</strong> Las convoluciones aprenden <em>qué</em> características existen; SE decide <em>qué tan importantes</em> son cada canal antes de fusionarlos.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Flujo de canales — Encoder y Embotellamiento</h2>
+    <p>Cada etapa del encoder <strong>duplica canales</strong> y <strong>reduce a la mitad tamaño espacial</strong> — intercambiando resolución por características más ricas.</p>
+    <table style="font-size:0.52em;margin:0.4em auto;">
+      <thead>
+        <tr><th>Etapa</th><th>Operación</th><th>Forma de salida</th><th>Qué aprende</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Entrada</strong></td><td>Slice FLAIR</td><td>1 × 128 × 128</td><td>Intensidades crudas</td></tr>
+        <tr style="border-top:2px solid var(--accent);"><td><strong>E1</strong></td><td>ResidualSEBlock(1 → 48)</td><td>48 × 128 × 128</td><td>Bordes y texturas</td></tr>
+        <tr><td></td><td>↓ MaxPool(2)</td><td>48 × 64 × 64</td><td></td></tr>
+        <tr><td><strong>E2</strong></td><td>ResidualSEBlock(48 → 96)</td><td>96 × 64 × 64</td><td>Patrones locales</td></tr>
+        <tr><td></td><td>↓ MaxPool(2)</td><td>96 × 32 × 32</td><td></td></tr>
+        <tr><td><strong>E3</strong></td><td>ResidualSEBlock(96 → 192)</td><td>192 × 32 × 32</td><td>Características regionales</td></tr>
+        <tr><td></td><td>↓ MaxPool(2)</td><td>192 × 16 × 16</td><td></td></tr>
+        <tr><td><strong>E4</strong></td><td>ResidualSEBlock(192 → 384)</td><td>384 × 16 × 16</td><td>Semántica de alto nivel</td></tr>
+        <tr><td></td><td>↓ MaxPool(2)</td><td>384 × 8 × 8</td><td></td></tr>
+        <tr style="border-top:2px solid var(--danger);"><td><strong>Embotellamiento</strong></td><td>ResidualSEBlock(384 → 768)</td><td>768 × 8 × 8</td><td>Representación más abstracta</td></tr>
+      </tbody>
+    </table>
+    <div class="box box-gray fragment" style="font-size:0.52em;">
+      📐 La resolución espacial se reduce 128 → 64 → 32 → 16 → 8 &nbsp;|&nbsp; Los canales aumentan 1 → 48 → 96 → 192 → 384 → 768
+    </div>
+  </section>
+
+  <section>
+    <h2>Flujo de canales — Decoder y cabezal</h2>
+    <p>El decoder <strong>mira al encoder</strong>: sube la resolución, concatena el skip correspondiente y refina.</p>
+    <table style="font-size:0.52em;margin:0.4em auto;">
+      <thead>
+        <tr><th>Etapa</th><th>Operación</th><th>Forma salida</th><th>Propósito</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>D4</strong></td><td>UpConv(768 → 384) + concat(E4)</td><td>768 × 16 × 16</td><td rowspan="2">Recuperar bordes de alto nivel</td></tr>
+        <tr><td></td><td>ResidualSEBlock(768 → 384)</td><td>384 × 16 × 16</td></tr>
+        <tr><td><strong>D3</strong></td><td>UpConv(384 → 192) + concat(E3)</td><td>384 × 32 × 32</td><td rowspan="2">Recuperar contornos regionales</td></tr>
+        <tr><td></td><td>ResidualSEBlock(384 → 192)</td><td>192 × 32 × 32</td></tr>
+        <tr><td><strong>D2</strong></td><td>UpConv(192 → 96) + concat(E2)</td><td>192 × 64 × 64</td><td rowspan="2">Recuperar detalle local</td></tr>
+        <tr><td></td><td>ResidualSEBlock(192 → 96)</td><td>96 × 64 × 64</td></tr>
+        <tr><td><strong>D1</strong></td><td>UpConv(96 → 48) + concat(E1)</td><td>96 × 128 × 128</td><td rowspan="2">Recuperar bordes finos</td></tr>
+        <tr><td></td><td>ResidualSEBlock(96 → 48)</td><td>48 × 128 × 128</td></tr>
+        <tr style="border-top:2px solid var(--success);"><td><strong>Cabezal</strong></td><td>Conv 1×1 (48 → 1)</td><td>1 × 128 × 128</td><td>Logits por píxel</td></tr>
+        <tr><td></td><td>Sigmoid</td><td>1 × 128 × 128</td><td>Mapa de probabilidades [0, 1]</td></tr>
+        <tr><td></td><td>Umbral (τ)</td><td>1 × 128 × 128</td><td>Máscara binaria {0, 1}</td></tr>
+      </tbody>
+    </table>
+    <div class="box box-blue fragment" style="font-size:0.52em;">
+      💡 <strong>Skip connections</strong> concatenan características del encoder (E<sub>k</sub>) con las del decoder upsampleado — esto le da a U-Net su localización de bordes precisa. &nbsp;|&nbsp; Total: <strong>~17.5 M parámetros</strong> (base_ch = 48)
+    </div>
+  </section>
+
+  <section>
+    <h2>Resultado U-Net (índice 1)</h2>
+    <div class="centered-slide">
+      <img src="../images/unet_res_index_1.png" alt="U-Net resultado índice 1" style="max-width:90%;border:1px solid rgba(0,0,0,0.12);border-radius:10px;" />
+      <p class="text-muted" style="font-size:0.65em;margin-top:0.5em;">Predicción del modelo para el índice 1.</p>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 4 — ENTRENAMIENTO                                  -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">04</div>
+    <h2>Estrategia de entrenamiento</h2>
+    <p class="text-muted" style="font-size:0.75em;">Diseño de pérdida, muestreo, EMA y TTA</p>
+  </section>
+
+  <section>
+    <h2>Diseño de pérdida: BCE + Focal-Tversky</h2>
+    <p><strong>Desafío:</strong> Desbalance extremo de clases — los píxeles tumorales pueden ser &lt; 5%</p>
+    <div class="formula-box" style="margin:0.6em auto;">
+      $\mathcal{L}_{\text{total}} = \underbrace{0.3 \cdot \mathcal{L}_{\text{BCE}}}_{\text{calibración}} + \underbrace{0.7 \cdot \mathcal{L}_{\text{Focal-Tversky}}}_{\text{calidad de overlap}}$
+    </div>
+    <div class="cols fragment" style="margin-top:0.5em;">
+      <div>
+        <h3>BCE ponderado</h3>
+        <p style="font-size:0.7em;">$\mathcal{L}_{\text{BCE}} = -\frac{1}{N}\sum_i\Big[w_+ y_i\log\sigma(z_i) + (1{-}y_i)\log(1{-}\sigma(z_i))\Big]$</p>
+        <p style="font-size:0.65em;">Provee buenos gradientes para cada píxel. El peso $w_+$ eleva la importancia de la clase rara (tumor).</p>
+      </div>
+      <div>
+        <h3>Focal-Tversky</h3>
+        <p style="font-size:0.7em;">$\text{TI} = \frac{TP + \varepsilon}{TP + 0.7{\cdot}FP + 0.3{\cdot}FN + \varepsilon}$</p>
+        <p style="font-size:0.7em;">$\mathcal{L}_{\text{FT}} = (1 - \text{TI})^{1.33}$</p>
+        <p style="font-size:0.65em;">Penaliza <strong>falsos negativos</strong> más fuertemente — perder un tumor ≫ falsas alarmas.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>EMA — Media Móvil Exponencial</h2>
+    <p><strong>Desafío:</strong> Actualizaciones ruidosas de gradiente → pesos inestables</p>
+    <div class="formula-box" style="margin:0.8em auto;">
+      $\theta^{\text{EMA}}_t = \underbrace{0.995}_{\text{decay}} \cdot \theta^{\text{EMA}}_{t-1} + \underbrace{0.005}_{\text{1 - decay}} \cdot \theta_t$
+    </div>
+    <div class="cols fragment">
+      <div>
+        <h3>Intuición</h3>
+        <ul>
+          <li>Un <strong>filtro pasa-bajo temporal</strong> sobre los pesos del modelo</li>
+          <li>Suaviza el ruido de cada mini-batch</li>
+          <li>Promedia aproximadamente las últimas <strong>~200 actualizaciones</strong></li>
+          <li>A menudo generaliza mejor que el peso "última época"</li>
+        </ul>
+      </div>
+      <div>
+        <pre><code class="python" data-trim>
+class ModelEMA:
+    def __init__(self, model, decay=0.995):
+        self.decay = decay
+        self.shadow = {k: v.clone()
+                       for k, v in
+                       model.state_dict().items()}
+
+    def update(self, model):
+        for key, val in model.state_dict().items():
+            self.shadow[key].mul_(self.decay)
+            self.shadow[key].add_(
+                val.detach(),
+                alpha=1 - self.decay)
+        </code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>TTA — Augmentation en tiempo de evaluación</h2>
+    <p><strong>Desafío:</strong> Las predicciones pueden variar con la orientación de la imagen</p>
+    <div class="formula-box" style="margin:0.8em auto;">
+      $\hat{p}(x) = \frac{1}{4}\sum_{k=1}^{4} T_k^{-1}\Big( f\big(T_k(x)\big) \Big)$
+    </div>
+    <div class="cols fragment">
+      <div>
+        <h3>Estrategia de 4 pliegues (flip)</h3>
+        <table>
+          <thead><tr><th>$k$</th><th>Transformación $T_k$</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Identidad (original)</td></tr>
+            <tr><td>2</td><td>Flip horizontal</td></tr>
+            <tr><td>3</td><td>Flip vertical</td></tr>
+            <tr><td>4</td><td>Ambos flips</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Beneficios</h3>
+        <ul>
+          <li>Contornos más suaves y robustos</li>
+          <li>Reduce ruido en los bordes</li>
+          <li>Cuesta 4× más cómputo (aceptable en inferencia)</li>
+          <li>No requiere reentrenamiento</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pipeline de entrenamiento — Datos y optimización</h2>
+    <p>Desde escaneos MRI crudos hasta un modelo entrenado en tres fases. Esta diapositiva cubre las dos primeras.</p>
+    <table style="font-size:0.5em;margin:0.3em auto;">
+      <thead><tr><th colspan="3" style="background:var(--accent);color:#fff;">Fase 1 — Preparación de datos</th></tr></thead>
+      <tbody>
+        <tr><td style="width:2em;">1</td><td><strong>Emparejamiento</strong></td><td>Relacionar cada slice FLAIR con su máscara binaria</td></tr>
+        <tr><td>2</td><td><strong>Split Train/Val</strong></td><td>Separación por paciente → evita fuga de datos</td></tr>
+        <tr><td>3</td><td><strong>Filtrado de slices</strong></td><td>Conservar 75% de slices con tumor en entrenamiento para evitar sesgo de fondo</td></tr>
+      </tbody>
+    </table>
+    <table style="font-size:0.5em;margin:0.3em auto;">
+      <thead><tr><th colspan="3" style="background:var(--danger);color:#fff;">Fase 2 — Bucle de entrenamiento (cada época)</th></tr></thead>
+      <tbody>
+        <tr><td style="width:2em;">1</td><td><strong>Augmentar</strong></td><td>Flips aleatorios + corrección gamma → más diversidad, menos overfitting</td></tr>
+        <tr><td>2</td><td><strong>Muestreo ponderado</strong></td><td>Oversample de slices con tumor para que el modelo vea suficientes ejemplos positivos</td></tr>
+        <tr><td>3</td><td><strong>Forward pass</strong></td><td>Imágenes → Residual SE U-Net → logits predichos</td></tr>
+        <tr><td>4</td><td><strong>Calcular pérdida</strong></td><td>$0.3 \cdot \mathcal{L}_{\text{BCE}} + 0.7 \cdot \mathcal{L}_{\text{Focal-Tversky}}$</td></tr>
+        <tr><td>5</td><td><strong>Backprop + AdamW</strong></td><td>Calcular gradientes → actualizar pesos con regularización de weight decay</td></tr>
+        <tr><td>6</td><td><strong>Clipping de gradiente</strong></td><td>max_norm = 1.0 → previene gradientes explosivos</td></tr>
+        <tr><td>7</td><td><strong>Actualización EMA</strong></td><td>Media móvil exponencial de pesos (decay = 0.995) → modelo más suave</td></tr>
+        <tr><td>8</td><td><strong>Chequeo de validación</strong></td><td>Calcular pérdida val → early stopping (paciencia = 5) → guardar mejores pesos EMA</td></tr>
+      </tbody>
+    </table>
+    <div class="box box-gray fragment" style="font-size:0.5em;">
+      🎯 Cada paso ataca un riesgo específico: <strong>filtrado → desbalance</strong>, <strong>augment → overfitting</strong>, <strong>clipping → inestabilidad</strong>, <strong>EMA → pesos ruidosos</strong>, <strong>early stop → sobreentrenamiento</strong>.
+    </div>
+  </section>
+
+  <section>
+    <h2>Pipleine de entrenamiento — Inferencia y evaluación</h2>
+    <p>Después del entrenamiento, cargamos el mejor checkpoint EMA y refinamos las predicciones antes de puntuar.</p>
+    <table style="font-size:0.5em;margin:0.4em auto;">
+      <thead><tr><th colspan="3" style="background:var(--success);color:#fff;">Fase 3 — Inferencia y post-procesamiento</th></tr></thead>
+      <tbody>
+        <tr><td style="width:2em;">1</td><td><strong>Cargar mejor checkpoint EMA</strong></td><td>Los pesos suavizados que lograron la menor pérdida de validación</td></tr>
+        <tr><td>2</td><td><strong>TTA (Test-Time Augmentation)</strong></td><td>Ejecutar 4 versiones flip de cada slice → promediar sus mapas de probabilidad</td></tr>
+        <tr><td>3</td><td><strong>Optimización de umbral</strong></td><td>Buscar τ en validación para maximizar Dice</td></tr>
+        <tr><td>4</td><td><strong>Binarizar</strong></td><td>Máscara binaria = probabilidad &gt; τ</td></tr>
+        <tr><td>5</td><td><strong>Evaluar</strong></td><td>Calcular IoU / Dice por slice y por paciente</td></tr>
+      </tbody>
+    </table>
+    <div class="diagram" style="font-size:0.44em;margin:0.5em 0;">
+Mejor checkpoint EMA ─▶ TTA (4 flips) ─▶ promediar probs ─▶ umbral (τ*) ─▶ máscara binaria ─▶ IoU / Dice
+    </div>
+    <div class="cols fragment" style="gap:0.6em;">
+      <div class="box box-blue" style="flex:1;font-size:0.5em;">
+        🔄 <strong>¿Por qué TTA?</strong> — Promediar múltiples vistas reduce la varianza de predicciones a costa de 4× tiempo de inferencia. Un trade-off valioso en imagen médica, donde un error puede importar mucho.
+      </div>
+      <div class="box box-green" style="flex:1;font-size:0.5em;">
+        📊 <strong>¿Por qué optimizar τ?</strong> — El umbral 0.5 por defecto raramente es óptimo. Buscar en validación encuentra el punto justo entre precisión (menos falsos positivos) y recall (menos tumores perdidos).
+      </div>
+    </div>
+  </section>
+
+    <section>
+    <h2>Resultado U-Net (índice 10)</h2>
+    <div class="centered-slide">
+      <img src="../images/unet_res_index_10.png" alt="U-Net resultado índice 10" style="max-width:90%;border:1px solid rgba(0,0,0,0.12);border-radius:10px;" />
+      <p class="text-muted" style="font-size:0.65em;margin-top:0.5em;">Predicción del modelo para el índice 10.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Resultado U-Net (índice 23)</h2>
+    <div class="centered-slide">
+      <img src="../images/unet_res_index_23.png" alt="U-Net resultado índice 23" style="max-width:90%;border:1px solid rgba(0,0,0,0.12);border-radius:10px;" />
+      <p class="text-muted" style="font-size:0.65em;margin-top:0.5em;">Predicción del modelo para el índice 23.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Resultado U-Net (índice 29)</h2>
+    <div class="centered-slide">
+      <img src="../images/unet_res_index_29.png" alt="U-Net resultado índice 29" style="max-width:90%;border:1px solid rgba(0,0,0,0.12);border-radius:10px;" />
+      <p class="text-muted" style="font-size:0.65em;margin-top:0.5em;">Predicción del modelo para el índice 29.</p>
+    </div>
+  </section>
+</section>
+
+
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 5 — MÉTRICAS                                         -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">05</div>
+    <h2>Métricas de evaluación</h2>
+    <p class="text-muted" style="font-size:0.75em;">IoU, Dice y por qué la accuracy no funciona</p>
+  </section>
+
+  <section>
+    <h2>¿Por qué no usar accuracy?</h2>
+    <div class="cols">
+      <div>
+        <div class="box box-red">
+          <strong>Ejemplo:</strong> La imagen es 98% fondo, 2% tumor<br/>
+          El modelo predice "todo fondo" → <strong>98% de accuracy!</strong><br/>
+          Pero no detectó ningún píxel tumoral.
+        </div>
+        <p class="fragment" style="margin-top:0.5em;font-size:0.6em;">Necesitamos métricas que se enfoquen en el <strong>overlap</strong> entre predicción y ground truth.</p>
+      </div>
+      <div>
+        <h3>La matriz de confusión</h3>
+        <table>
+          <thead><tr><th></th><th>Predicho Positivo</th><th>Predicho Negativo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Realmente Positivo</strong></td><td style="background:#dcfce7;">✅ TP (True Positive)</td><td style="background:#fee2e2;">❌ FN (False Negative)</td></tr>
+            <tr><td><strong>Realmente Negativo</strong></td><td style="background:#fef3c7;">⚠️ FP (False Positive)</td><td style="background:#f1f5f9;">TN (True Negative)</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.55em;margin-top:0.3em;">En segmentación, cada píxel es una predicción. TP/FP/FN/TN son <strong>conteos de píxeles</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Precisión y recall</h2>
+    <p style="font-size:0.55em;">Dos preguntas complementarias que todo clasificador debe responder — aquí aplicadas <strong>por píxel</strong>.</p>
+    <div class="cols" style="margin-top:0.2em;align-items:flex-start;">
+      <div style="flex:1;">
+        <h3 style="color:var(--accent);font-size:0.8em;">Precisión</h3>
+        <div class="formula-box" style="font-size:0.9em;">
+          $\text{Precisión} = \dfrac{TP}{TP + FP}$
+        </div>
+        <p style="font-size:0.48em;">"De los píxeles que el modelo marcó como tumor, ¿cuántos realmente eran?"</p>
+        <table style="font-size:0.44em;margin-top:0.1em;">
+          <tr><td>Alto</td><td>→ Pocas falsas alarmas</td></tr>
+          <tr><td>Bajo</td><td>→ Sobre-segmenta (marca tejido sano)</td></tr>
+        </table>
+      </div>
+      <div style="flex:1;">
+        <h3 style="color:var(--danger);font-size:0.8em;">Recall (Sensibilidad)</h3>
+        <div class="formula-box" style="font-size:0.9em;">
+          $\text{Recall} = \dfrac{TP}{TP + FN}$
+        </div>
+        <p style="font-size:0.48em;">"De los píxeles que realmente son tumor, ¿cuántos detectó el modelo?"</p>
+        <table style="font-size:0.44em;margin-top:0.1em;">
+          <tr><td>Alto</td><td>→ Pocos tumores perdidos</td></tr>
+          <tr><td>Bajo</td><td>→ Sub-segmenta (pierde enfermedad)</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="diagram fragment" style="font-size:0.4em;margin-top:0.25em;">
+  La precisión pregunta ──▶ De las predicciones POSITIVAS, ¿qué fracción es correcta?
+  El recall pregunta  ──▶ De los POSITIVOS reales, ¿qué fracción fue detectada?</div>
+    <div class="box box-red fragment" style="font-size:0.46em;margin-top:0.2em;">
+      ⚕️ En medicina priorizamos el <strong>recall</strong> — perder un tumor (FN) es mucho más peligroso que una falsa alarma (FP). Nuestra pérdida Focal-Tversky penaliza FN más fuerte.
+    </div>
+  </section>
+
+  <section>
+    <h2>Puntaje F1 — Equilibrio entre ambos</h2>
+    <p>Precisión y recall suelen contraponerse. El <strong>F1</strong> los combina en un solo número.</p>
+    <div class="formula-box" style="margin:0.4em auto;">
+      $F_1 = \frac{2 \cdot \text{Precisión} \cdot \text{Recall}}{\text{Precisión} + \text{Recall}} = \frac{2 \cdot TP}{2 \cdot TP + FP + FN}$
+    </div>
+    <p style="font-size:0.55em;">Es la <strong>media armónica</strong> — se mantiene baja si <em>cualquiera</em> de los dos es bajo (a diferencia de la media aritmética).</p>
+    <div class="cols" style="margin-top:0.3em;">
+      <div style="flex:1;">
+        <table style="font-size:0.48em;">
+          <thead><tr><th>Precisión</th><th>Recall</th><th>Media aritmética</th><th>F1 (armónica)</th></tr></thead>
+          <tbody>
+            <tr><td>0.95</td><td>0.95</td><td>0.95</td><td><strong>0.95</strong></td></tr>
+            <tr><td>0.90</td><td>0.10</td><td>0.50</td><td><strong>0.18</strong> ← mucho más estricta</td></tr>
+            <tr><td>0.70</td><td>0.70</td><td>0.70</td><td><strong>0.70</strong></td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.48em;color:var(--muted);margin-top:0.2em;">La fila 2 muestra por qué: un modelo que casi no recuerda es penalizado aunque su precisión sea alta.</p>
+      </div>
+      <div style="flex:1;">
+        <div class="box box-blue" style="font-size:0.52em;">
+          💡 <strong>Insight clave:</strong> F1 tiene la <em>misma fórmula exacta</em> que el <strong>coeficiente Dice</strong> usado en segmentación — son la misma métrica vista de dos maneras.
+        </div>
+        <div class="box box-gray" style="margin-top:0.3em;font-size:0.52em;">
+          🧮 <strong>¿Por qué armónica?</strong> La media armónica de dos números siempre es ≤ su media aritmética, e iguala solo cuando ambos valores son iguales. Castiga el desequilibrio.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>IoU y Dice — Métricas de segmentación</h2>
+    <p style="font-size:0.52em;">Ambas miden el <strong>overlap</strong> entre la máscara predicha $P$ y la ground-truth $G$, pero con distinta rigurosidad.</p>
+    <div class="cols" style="margin-top:0.15em;align-items:flex-start;">
+      <div style="flex:1;">
+        <h3 style="color:var(--accent);font-size:0.8em;">IoU (Jaccard)</h3>
+        <div class="formula-box" style="font-size:0.85em;">
+          $\text{IoU} = \dfrac{TP}{TP + FP + FN}$
+        </div>
+        <p style="font-size:0.44em;">Intersección / Unión — medida más estricta.</p>
+      </div>
+      <div style="flex:1;">
+        <h3 style="color:var(--success);font-size:0.8em;">Dice (≡ F1)</h3>
+        <div class="formula-box" style="font-size:0.85em;">
+          $\text{Dice} = \dfrac{2 \cdot TP}{2 \cdot TP + FP + FN}$
+        </div>
+        <p style="font-size:0.44em;">Siempre ≥ IoU — estándar en segmentación médica.</p>
+      </div>
+    </div>
+    <div class="diagram" style="font-size:0.38em;margin:0.15em 0;">
+   Predicción (P)        Ground Truth (G)
+   ┌────────┐            ┌────────┐
+   │  FP    ├────TP──────┤   FN   │       IoU  = TP / (TP+FP+FN)
+   └────────┘   (P∩G)    └────────┘       Dice = 2·TP / (2·TP+FP+FN)</div>
+    <table class="fragment" style="font-size:0.44em;margin:0.15em auto;">
+      <thead><tr><th>IoU</th><th>Dice</th><th>Interpretación</th></tr></thead>
+      <tbody>
+        <tr><td>1.00</td><td>1.00</td><td>Solapamiento perfecto</td></tr>
+        <tr><td>0.80</td><td>0.89</td><td>Excelente — SOTA para tumores cerebrales</td></tr>
+        <tr><td>0.60</td><td>0.75</td><td>Bueno — clínicamente útil</td></tr>
+        <tr><td>0.40</td><td>0.57</td><td>Moderado — necesita revisión</td></tr>
+        <tr><td>0.00</td><td>0.00</td><td>Sin solapamiento</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Optimización de umbral</h2>
+    <p>El modelo entrega probabilidades $\in [0, 1]$ — necesitamos un umbral $\tau$</p>
+    <div class="cols" style="margin-top:0.5em;">
+      <div>
+        <table>
+          <thead><tr><th>Umbral $\tau$</th><th>Efecto</th></tr></thead>
+          <tbody>
+            <tr><td>Muy bajo (0.2)</td><td>Muchos falsos positivos (sobre-segmentación)</td></tr>
+            <tr><td>Muy alto (0.8)</td><td>Muchos falsos negativos (sub-segmentación)</td></tr>
+            <tr><td>Óptimo (~0.5)</td><td>Mejor balance entre precisión y recall</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="box box-gray" style="font-size:0.95em;">
+          <strong>Estrategia de grid search:</strong>
+          <ol style="font-size:1em;">
+            <li>Probar $\tau \in \{0.30, 0.35, \ldots, 0.70\}$</li>
+            <li>Para cada $\tau$: calcular Dice en todas las slices de validación</li>
+            <li>Elegir $\tau^*$ que maximice la Dice media</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 6 — EVALUACIÓN                                      -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">06</div>
+    <h2>Evaluación multinivel</h2>
+    <p class="text-muted" style="font-size:0.75em;">Nivel slice, nivel paciente y análisis de fallos</p>
+  </section>
+
+  <section>
+    <h2>La evaluación debe ser multinivel</h2>
+    <table>
+      <thead><tr><th>Nivel</th><th>Qué nos dice</th><th>Riesgo si se omite</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Una muestra</strong></td>
+          <td>Chequeo visual rápido</td>
+          <td>Puede ocultar errores obvios</td>
+        </tr>
+        <tr>
+          <td><strong>Nivel slice</strong></td>
+          <td>Rendimiento promedio por slice</td>
+          <td>Oculta variabilidad por paciente</td>
+        </tr>
+        <tr>
+          <td><strong>Nivel paciente</strong></td>
+          <td>Agregado por paciente</td>
+          <td>Revela si falla con pacientes específicos</td>
+        </tr>
+        <tr>
+          <td><strong>Análisis de fallos</strong></td>
+          <td>Inspección del peor caso</td>
+          <td>Puede no detectar modos de fallo peligrosos</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="box box-red fragment" style="margin-top:0.6em;">
+      ⚠️ <strong>Principio clave:</strong> Un modelo con métricas promedio excelentes puede fallar catastróficamente en casos individuales. Siempre revisa las colas de la distribución.
+    </div>
+  </section>
+
+  <section>
+    <h2>Por qué el nivel paciente importa más</h2>
+    <div class="cols">
+      <div>
+        <p>En la práctica clínica, las decisiones se toman <strong>por paciente</strong>, no por slice.</p>
+        <ul>
+          <li class="fragment"><strong>Consistencia:</strong> ¿El modelo es confiable en diferentes pacientes?</li>
+          <li class="fragment"><strong>Patrones de fallo:</strong> ¿Hay tipos de paciente donde falla?</li>
+          <li class="fragment"><strong>Preparación clínica:</strong> ¿Un radiólogo confiaría en esto para cada paciente?</li>
+        </ul>
+      </div>
+      <div class="fragment">
+        <div class="box box-blue">
+          <strong>Cómo agregamos:</strong>
+          <ol style="font-size:1.3em;">
+            <li>Agrupar slices por ID de paciente</li>
+            <li>Calcular IoU y Dice medios por paciente</li>
+            <li>Reportar promedio macro entre pacientes</li>
+            <li>Inspeccionar top-5 y bottom-5 pacientes</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Análisis de fallos</h2>
+    <p style="font-size:0.65em;">Probablemente la parte más importante de la evaluación — entender <strong>dónde</strong> y <strong>por qué</strong> el modelo falla.</p>
+      <div style="flex:1;">
+        <table style="font-size:0.58em;">
+          <thead><tr><th>#</th><th>Patrón de fallo</th><th>Causa probable</th></tr></thead>
+          <tbody>
+            <tr class="fragment"><td>1</td><td>Tumor muy <strong>pequeño o tenue</strong></td><td>Baja signal-to-noise ratio — el modelo no tiene evidencia</td></tr>
+            <tr class="fragment"><td>2</td><td>Tumor en ubicación <strong>inusual</strong></td><td>Región poco representada en los datos de entrenamiento</td></tr>
+            <tr class="fragment"><td>3</td><td><strong>Sobre-segmentación</strong> consistente</td><td>Umbral τ demasiado bajo, o peso BCE demasiado alto</td></tr>
+            <tr class="fragment"><td>4</td><td><strong>Sub-segmentación</strong> consistente</td><td>Umbral τ demasiado alto, o modelo demasiado conservador</td></tr>
+            <tr class="fragment"><td>5</td><td>La ground truth es <strong>ambigua</strong></td><td>Inconsistencia entre las etiquetas — no es un error del modelo</td></tr>
+          </tbody>
+        </table>
+      </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 7 — AI RESPONSABLE                                  -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">07</div>
+    <h2>AI responsable</h2>
+    <p class="text-muted" style="font-size:0.75em;">Antes de que cualquier modelo salga del notebook…</p>
+  </section>
+
+  <section>
+    <h2>Limitaciones conocidas</h2>
+    <table>
+      <thead><tr><th>Limitación</th><th>Impacto</th><th>Mitigación</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>2D slice-based</strong></td>
+          <td>Ignora continuidad espacial 3D</td>
+          <td>Usar U-Net 3D o post-procesamiento</td>
+        </tr>
+        <tr>
+          <td><strong>Dataset único</strong></td>
+          <td>Puede no generalizar a otros escáneres</td>
+          <td>Validación externa en datos independientes</td>
+        </tr>
+        <tr>
+          <td><strong>Segmentación binaria</strong></td>
+          <td>No distingue subtipos tumorales</td>
+          <td>Segmentación multiclass con más etiquetas</td>
+        </tr>
+        <tr>
+          <td><strong>Variabilidad de anotaciones</strong></td>
+          <td>Desacuerdo entre observadores</td>
+          <td>Anotaciones de consenso, múltiples anotadores</td>
+        </tr>
+        <tr>
+          <td><strong>Sin análisis de calibración</strong></td>
+          <td>Probabilidades ≠ confianza real</td>
+          <td>Curvas de calibración, Platt scaling</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Checklist de uso responsable</h2>
+    <div class="cols">
+      <div>
+        <ul>
+          <li class="fragment">☐ Modelo validado en dataset externo e independiente</li>
+          <li class="fragment">☐ Modos de falla documentados y comunicados</li>
+          <li class="fragment">☐ Resultados siempre revisados por <strong>un clínico calificado</strong></li>
+          <li class="fragment">☐ Requisitos regulatorios cumplidos</li>
+          <li class="fragment">☐ Evaluación de sesgos (demografía, escáneres)</li>
+          <li class="fragment">☐ Privacidad de pacientes protegida</li>
+        </ul>
+      </div>
+      <div class="fragment">
+        <div class="box box-red" style="margin-top:1em;">
+          <strong>Mensaje principal:</strong><br/>
+          Buenas métricas son <em>necesarias</em> pero <strong>no suficientes</strong> para despliegue médico.
+        </div>
+        <div class="box box-red" style="margin-top:1em;">
+          <strong>Mensaje más importante aún:</strong><br/>
+          No podemos sacar ni obviar a los expertos clínicos en todo el proceso de planificación, entrenamiento, planificación y despliegue. El conocimiento experto es crucial y la intención no es reemplazarlo, sino potenciarlo.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Model Card</h2>
+    <p class="text-muted" style="font-size:0.65em;">Resumen estandarizado (Mitchell et al., 2019) — todo modelo de ML debería tener uno.</p>
+    <div class="cols" style="margin-top:0.3em;">
+      <div>
+        <table>
+          <thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+          <tbody>
+            <tr><td>Modelo</td><td>Residual SE U-Net (2D)</td></tr>
+            <tr><td>Entrada</td><td>MRI en escala de grises 128×128</td></tr>
+            <tr><td>Salida</td><td>Mapa de probabilidad + máscara binaria</td></tr>
+            <tr><td>Datos</td><td>LGG MRI Segmentation (110 pacientes)</td></tr>
+            <tr><td>Estrategia</td><td>BCE + Focal-Tversky, EMA, TTA</td></tr>
+            <tr><td>Parámetros</td><td>~17.5M</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>✅ Uso previsto</th><th>❌ No para</th></tr></thead>
+          <tbody>
+            <tr><td>Demo educativa</td><td>Diagnóstico clínico</td></tr>
+            <tr><td>Tutorial de segmentación</td><td>Planificación de tratamiento</td></tr>
+            <tr><td>Prototipo de investigación</td><td>Decisiones autónomas</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN BONUS — DESPLIEGUE                                  -->
+<!-- ============================================================ -->
+<section>
+  <section class="section-divider">
+    <div class="section-num">+</div>
+    <h2>Despliegue</h2>
+    <p class="text-muted" style="font-size:0.75em;">Del notebook a una app web en producción</p>
+  </section>
+
+  <section>
+    <h2>Exportar ONNX para producción</h2>
+    <p>PyTorch es ideal para entrenar pero pesado para desplegar (~300 MB de RAM)</p>
+    <div class="flow" style="margin:1em 0;">
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">Modelo PyTorch<br/><span style="font-size:0.7em;">141 MB (.pt)</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#dcfce7;color:#166534;">export_onnx.py</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#dcfce7;color:#166534;">ONNX Runtime<br/><span style="font-size:0.7em;">71 MB (.onnx)</span></div>
+    </div>
+    <table>
+      <thead><tr><th>Métrica</th><th>PyTorch</th><th>ONNX Runtime</th></tr></thead>
+      <tbody>
+        <tr><td>Archivo modelo</td><td>141 MB</td><td>71 MB</td></tr>
+        <tr><td>RAM framework</td><td>~300 MB</td><td>~40 MB</td></tr>
+        <tr><td>RAM total</td><td>~450 MB</td><td>~150 MB</td></tr>
+        <tr><td>¿Cabe en free tier (512 MB)?</td><td style="color:var(--danger);">❌ No</td><td style="color:var(--success);">✅ Sí</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Arquitectura de la app web</h2>
+    <div class="diagram" style="font-size:0.55em;">
+┌─────────────┐     ┌──────────────────────────────────┐
+│   Navegador │────▶│  Django Web App  (brain_app/)    │
+│             │     │                                   │
+│  Subir MRI  │     │  views.py                        │
+│  Ver Resultado │◀────│    ↓ llama a inference_onnx.py      │
+│  Descargar  │     │    ↓ sesión ONNX Runtime         │
+│  Reporte PDF│     │    ↓ devuelve AnalysisResult     │
+│             │     │    ↓ report.py → PDF             │
+└─────────────┘     └──────────────────────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │  Render.com │
+                    │  Docker     │
+                    │  512 MB RAM │
+                    └─────────────┘</div>
+    <div class="box box-green fragment">
+      ✅ Todo el pipeline — subir imagen, segmentar, generar reporte PDF — corre dentro de 512 MB en una instancia gratuita de Render.
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!--  CONCLUSIONES                                                -->
+<!-- ============================================================ -->
+<section>
+  <h2>Conclusiones clave</h2>
+  <ol>
+    <li class="fragment"><strong>Siempre empieza con un baseline</strong> — entiende el problema antes de agregar complejidad</li>
+    <li class="fragment"><strong>U-Net + skip connections</strong> = semántica + detalle espacial → excelente para segmentación</li>
+    <li class="fragment"><strong>El desbalance requiere manejo multinivel:</strong> datos, muestreo y diseño de pérdida</li>
+    <li class="fragment"><strong>EMA y TTA</strong> son técnicas baratas pero efectivas para mejorar robustez</li>
+    <li class="fragment"><strong>Evalúa en varios niveles:</strong> slice → paciente → análisis de fallos</li>
+    <li class="fragment"><strong>Buenas métricas promedio ≠ seguro para despliegue</strong> — siempre revisa las colas</li>
+    <li class="fragment"><strong>AI responsable no es opcional</strong> — especialmente en aplicaciones médicas</li>
+  </ol>
+</section>
+
+<!-- ============================================================ -->
+<!--  REFERENCIA DE SÍMBOLOS                                      -->
+<!-- ============================================================ -->
+<section>
+  <h2>Referencia de símbolos (Cheat Sheet)</h2>
+  <div class="cols" style="margin-top:0.3em;">
+    <div>
+      <table>
+        <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td>$x$</td><td>Slice MRI de entrada</td></tr>
+          <tr><td>$y$, $y_i$</td><td>Máscara binaria ground-truth</td></tr>
+          <tr><td>$z_i$</td><td>Output bruto del modelo (logit)</td></tr>
+          <tr><td>$\sigma(z_i)$</td><td>Probabilidad tras sigmoid</td></tr>
+          <tr><td>$\hat{p}(x)$</td><td>Mapa de probabilidad promediado por TTA</td></tr>
+          <tr><td>$\tau$</td><td>Umbral de clasificación</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th>Símbolo</th><th>Valor</th><th>Rol</th></tr></thead>
+        <tbody>
+          <tr><td>$\lambda_{\text{BCE}}$</td><td>0.3</td><td>Peso BCE</td></tr>
+          <tr><td>$\lambda_{\text{FT}}$</td><td>0.7</td><td>Peso Focal-Tversky</td></tr>
+          <tr><td>$\alpha$</td><td>0.7</td><td>Penalidad FP</td></tr>
+          <tr><td>$\beta$</td><td>0.3</td><td>Penalidad FN</td></tr>
+          <tr><td>$\gamma$</td><td>1.33</td><td>Exponente focal</td></tr>
+          <tr><td>$d$</td><td>0.995</td><td>Decay EMA</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!--  AGRADECIMIENTOS                                             -->
+<!-- ============================================================ -->
+<section>
+  <div style="margin-top:2em;">
+    <h1>¡Gracias!</h1>
+    <p style="font-size:0.85em;color:var(--muted);">¿Preguntas?</p>
+
+    <p class="text-disclaimer" style="margin-top:2em;">
+      ⚠️ Material para fines educativos — no validado para uso clínico.
+    </p>
+  </div>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<!-- Reveal.js + Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  width: 1280,
+  height: 720,
+  margin: 0.08,
+  transition: 'slide',
+  plugins: [ RevealHighlight, RevealNotes ],
+  // Vertical slides accessed with arrow-down
+  // Fragments revealed one-by-one with arrow-right
+});
+</script>
+</body>
+</html>
