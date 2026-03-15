@@ -256,6 +256,8 @@ git commit -m "Deploy brain MRI analyzer"
 git push
 ```
 
+✅ **Live demo:** https://brain-mri-analyzer.onrender.com
+
 ### How it fits in 512 MB
 
 | Optimization | Savings |

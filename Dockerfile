@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY brain_app/ /app/
 
 # Copy ONNX model + metadata (NOT the .pt checkpoint)
-COPY checkpoints/model.onnx checkpoints/model_meta.json /app/checkpoints/
+# ONNX Runtime may use a companion .data file for memory-mapped models.
+COPY checkpoints/model.onnx checkpoints/model.onnx.data checkpoints/model_meta.json /app/checkpoints/
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
