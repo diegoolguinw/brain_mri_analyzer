@@ -34,6 +34,7 @@
 
   .reveal {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 2.3em;
   }
 
   .reveal h1, .reveal h2, .reveal h3 {
@@ -44,11 +45,11 @@
   .reveal h1 { font-size: 1.75em; color: var(--accent); }
   .reveal h2 { font-size: 1.25em; color: #1e293b; }
   .reveal h3 { font-size: 0.9em; color: var(--accent); }
-  .reveal p, .reveal li { font-size: 0.62em; line-height: 1.45; color: #334155; }
+  .reveal p, .reveal li { font-size: 0.60em; line-height: 1.45; color: #334155; }
   .reveal li { margin-bottom: 0.2em; }
-  .reveal code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.82em; }
+  .reveal code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.80em; }
   .reveal pre { width: 100%; }
-  .reveal pre code { padding: 0.8em; border-radius: 8px; font-size: 0.5em; line-height: 1.4; }
+  .reveal pre code { padding: 0.8em; border-radius: 8px; font-size: 0.48em; line-height: 1.4; }
 
   /* ── Utility classes ───────────────────────────────────── */
   .tag {
@@ -285,7 +286,7 @@
   <p style="font-size:0.7em; color:var(--muted);">Un poco sobre mí y por qué me interesa lo que veremos hoy.</p>
   <div class="profile">
     <div class="profile-details">
-      <h3>¿Quién soy?</h3>
+      <h3>Un poco sobre mí</h3>
       <ul>
         <li> Soy <strong>Diego Olguín</strong>, Research Engineer en la línea de Salud Digital del <strong>Centro de Modelamiento Matemático</strong>.</li>
         <li> Ingeniero Civil Matemático y Magíster en Matemática Aplicada de la Universidad de Chile.</li>
@@ -768,7 +769,7 @@ Image (5×5)         Kernel (3×3)       Feature Map (3×3)
         </table>
       </div>
       <div style="flex:1;">
-        <div class="box box-gray" style="font-size:0.75em;">
+        <div class="box box-gray" style="font-size:0.7em;">
           <strong>Algoritmo (5 pasos):</strong>
           <ol style="margin:0.2em 0 0 1em;">
             <li>Construir un <strong>histograma</strong> de intensidades</li>
@@ -778,12 +779,12 @@ Image (5×5)         Kernel (3×3)       Feature Map (3×3)
             <li>Elegir $\tau^*$ que <strong>maximice</strong> la separación</li>
           </ol>
         </div>
-        <p style="font-size:0.75em;margin-top:0.5em;"><strong>Intuición:</strong> Dos picos en el histograma (tejido oscuro y tumor brillante) — Otsu encuentra el <strong>valle</strong> entre ellos.</p>
+        <p style="font-size:0.7em;margin-top:0.5em;"><strong>Intuición:</strong> Dos peaks en el histograma (tejido oscuro y tumor brillante) — Otsu encuentra el <strong>valle</strong> entre ellos.</p>
         <div class="cols" style="gap:0.4em;margin-top:0.5em;">
-          <div class="box box-green" style="flex:1;font-size:0.75em;">
+          <div class="box box-green" style="flex:1;font-size:0.6em;">
             ✅ No supervisado, rápido O(n), determinista, simple
           </div>
-          <div class="box box-red" style="flex:1;font-size:0.75em;">
+          <div class="box box-red" style="flex:1;font-size:0.6em;">
             ❌ Asume histograma bimodal — falla cuando estructuras brillantes se solapan
           </div>
         </div>
